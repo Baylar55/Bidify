@@ -49,11 +49,11 @@ namespace AuctionService.Controllers
 
             context.Auctions.Add(auction);
 
-            var result = await context.SaveChangesAsync() > 0;
-
             var newAuction = mapper.Map<AuctionDto>(auction);
 
             await publishEndpoint.Publish(mapper.Map<AuctionCreated>(newAuction));
+
+            var result = await context.SaveChangesAsync() > 0;
 
             if (!result) return BadRequest("Couldn't save changes to database");
 
@@ -75,6 +75,8 @@ namespace AuctionService.Controllers
             auction.Item.Mileage = auctionDto.Mileage ?? auction.Item.Mileage;
             auction.Item.Year = auctionDto.Year ?? auction.Item.Year;
 
+            await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction));
+
             var result = await context.SaveChangesAsync() > 0;
 
             if (result) return Ok();
@@ -92,6 +94,8 @@ namespace AuctionService.Controllers
             //TODO: Check seller username
 
             context.Auctions.Remove(auction);
+
+            await publishEndpoint.Publish<AuctionDeleted>(new { Id = auction.Id.ToString() });
 
             var result = await context.SaveChangesAsync() > 0;
 
