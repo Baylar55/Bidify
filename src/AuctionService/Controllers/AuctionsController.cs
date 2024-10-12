@@ -5,6 +5,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Contracts;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,13 +40,13 @@ namespace AuctionService.Controllers
             return mapper.Map<AuctionDto>(auction);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto auctionDto)
         {
             var auction = mapper.Map<Auction>(auctionDto);
-
-            //TODO: add current user to seller 
-            auction.Seller = "test";
+            
+            auction.Seller = User.Identity.Name;
 
             context.Auctions.Add(auction);
 
@@ -60,6 +61,7 @@ namespace AuctionService.Controllers
             return CreatedAtAction(nameof(GetAuctionById), new { auction.Id }, mapper.Map<AuctionDto>(auction));
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAuction(Guid id, UpdateAuctionDto auctionDto)
         {
@@ -67,7 +69,7 @@ namespace AuctionService.Controllers
 
             if (auction == null) return NotFound();
 
-            //TODO: Check seller username
+            if (auction.Seller != User.Identity.Name) return Forbid();
 
             auction.Item.Make = auctionDto.Make ?? auction.Item.Make;
             auction.Item.Model = auctionDto.Model ?? auction.Item.Model;
@@ -84,6 +86,7 @@ namespace AuctionService.Controllers
             return BadRequest("Couldn't save changes to database");
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAuction(Guid id)
         {
@@ -91,7 +94,7 @@ namespace AuctionService.Controllers
 
             if (auction == null) return NotFound();
 
-            //TODO: Check seller username
+            if (auction.Seller != User.Identity.Name) return Forbid();
 
             context.Auctions.Remove(auction);
 
