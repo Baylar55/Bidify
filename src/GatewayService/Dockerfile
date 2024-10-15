@@ -14,13 +14,12 @@ COPY src/IdentityService/IdentityService.csproj src/IdentityService/IdentityServ
 RUN dotnet restore Bidify.sln
 
 
-COPY src/SearchService src/SearchService
-COPY src/Contracts src/Contracts
-WORKDIR /app/src/SearchService
+COPY src/GatewayService src/GatewayService
+WORKDIR /app/src/GatewayService
 RUN dotnet publish -c Release -o /app/src/out
 
  
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/src/out .
-ENTRYPOINT [ "dotnet", "SearchService.dll" ]
+ENTRYPOINT [ "dotnet", "GatewayService.dll" ]
