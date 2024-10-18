@@ -37,7 +37,7 @@ public static class Config
                 AllowedScopes = {"openid", "profile", "auctionApp"},
                 AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
                 RedirectUris = {"http://localhost:3000/api/auth/callback/id-server"},
-
+                AlwaysIncludeUserClaimsInIdToken = true
             }
         ];
 }
