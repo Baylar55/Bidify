@@ -13,7 +13,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: "secret",
       issuer: "https://localhost:5000",
       authorization: { params: { scope: "openid profile auctionApp" } },
-      token: true,
-    } as OIDCConfig<Profile>),
+      idToken: true,
+    } as OIDCConfig<Omit<Profile, "username">>),
   ],
+  callbacks: {
+    async authorized({ auth }) {
+      return !!auth;
+    },
+
+    async jwt({ token, profile }) {
+      if (profile) {
+        token.username = profile.username;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token) {
+        session.user.username = token.username;
+      }
+      return session;
+    },
+  },
 });
