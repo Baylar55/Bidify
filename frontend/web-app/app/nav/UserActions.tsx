@@ -29,7 +29,7 @@ export default function UserActions({ user }: Props) {
         <Link href="/">Auctions won</Link>
       </DropdownItem>
       <DropdownItem icon={AiFillCar}>
-        <Link href="/">Sell my car</Link>
+        <Link href="/auctions/create">Sell my car</Link>
       </DropdownItem>
       <DropdownItem icon={HiCog}>
         <Link href="/session">Session (Dev only!)</Link>
