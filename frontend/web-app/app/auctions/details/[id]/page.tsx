@@ -1,4 +1,4 @@
-import { getBidsForAuction, getDetailedViewData } from "@/app/actions/auctionActions";
+import { getDetailedViewData } from "@/app/actions/auctionActions";
 import Heading from "@/app/components/Heading";
 import React from "react";
 import CountdownTimer from "../../CountdownTimer";
@@ -7,11 +7,11 @@ import DetailedSpecs from "./DetailedSpecs";
 import { getCurrentUser } from "@/app/actions/authActions";
 import EditButton from "./EditButton";
 import DeleteButton from "./DeleteButton";
+import BidList from "./BidList";
 
 export default async function Details({ params }: { params: { id: string } }) {
   const data = await getDetailedViewData(params.id);
   const user = await getCurrentUser();
-  const bids = await getBidsForAuction(params.id);
 
   return (
     <div>
@@ -20,10 +20,10 @@ export default async function Details({ params }: { params: { id: string } }) {
           <Heading title={`${data.make} ${data.model}`} />
           {user?.username === data.seller && (
             <>
-                <EditButton id={data.id} /> 
-                <DeleteButton id={data.id} />
+              <EditButton id={data.id} />
+              <DeleteButton id={data.id} />
             </>
-        )}
+          )}
         </div>
 
         <div className="flex gap-3">
@@ -37,12 +37,7 @@ export default async function Details({ params }: { params: { id: string } }) {
           <CarImage imageUrl={data.imageUrl} />
         </div>
 
-        <div className="border-2 rounded-lg p-2 bg-gray-100">
-          <Heading title="Bids" />
-          {bids.map((bid) => (
-            <p key={bid.id}>{bid.bidder} - {bid.amount}</p>
-          ))}
-        </div>
+        <BidList auction={data} user={user} />
       </div>
 
       <div className="mt-3 grid grid-cols-1 rounded-lg">
