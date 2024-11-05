@@ -36,3 +36,4 @@ export const useBidStore = create<State & Actions>((set) => ({
     }));
   },
 }));
+ 
