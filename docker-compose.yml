@@ -67,7 +67,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
+      - IssuerUri=https://id.bidify.local
+      - ClientApp=https://app.bidify.local
       - ConnectionStrings__DefaultConnection=Server=postgres:5432;User Id=postgres;Password=pgAdmin;Database=identity 
+      - VIRTUAL_HOST=id.bidify.local
     ports:
       - 5000:80
     depends_on:
@@ -80,6 +83,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
+      - ClientApp=https://app.bidify.local
+      - VIRTUAL_HOST=api.bidify.local
     ports:
       - 6001:80
   bid-svc:
@@ -112,4 +117,29 @@ services:
       - 7004:80
     depends_on:
       - rabbitmq
-      
+  web-app:
+    image: bylr/web-app    
+    build:
+      context: .
+      dockerfile: frontent/web-app/Dockerfile
+    volumes:
+      - /var/lib/web/data
+    environment:
+      - AUTH_SECRET="AanSR1LuaD1z/I+ucJCjCjWoBvOClGXW0eX3ZZZfHIM="
+      - API_URL=http://gateway-svc/
+      - ID_URL=http://id.bidify.local
+      - ID_URL_INTERNAL=https://identity-svc
+      - AUTH_URL=https://app.bidify.local
+      - AUTH_URL_INTERNAL=http://web-app:3000
+      - NOTIFY_URL=https://api.bidify.local/notifications
+      - VIRTUAL_HOST=app.bidify.local 
+      - VIRTUAL_PORT=3000
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./devcerts:/etc/nginx/certs
