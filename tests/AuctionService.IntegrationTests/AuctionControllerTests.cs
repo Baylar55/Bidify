@@ -68,6 +68,50 @@ public class AuctionControllerTests : IClassFixture<CustomWebAppFactory>, IAsync
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task CreateAuction_WithNoAuth_ShouldReturnUnauthorized()
+    {
+        // Arrange
+        var newAuction = new CreateAuctionDto { Make = "Test" };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("api/auctions", newAuction);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateAuction_WithAuth_ShouldReturnCreated()
+    {
+        // Arrange
+        var newAuction = GetAuctionForCreate();
+        _client.SetFakeJwtBearerToken(AuthHelper.GetBearerForUser("test-user"));
+
+        // Act
+        var response = await _client.PostAsJsonAsync("api/auctions", newAuction);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var createdAuction = await response.Content.ReadFromJsonAsync<AuctionDto>();
+        Assert.Equal("test-user", createdAuction.Seller);    
+    }
+
+    private CreateAuctionDto GetAuctionForCreate(){
+        return new CreateAuctionDto{
+            Make = "Test",
+            Model = "Test",
+            Year = 2022,
+            ImageUrl = "https://www.google.com",
+            Color = "Test",
+            Mileage = 1000,
+            ReservePrice = 10000,
+        };
+    }
+
     public Task DisposeAsync()
     {
         using var scope = _factory.Services.CreateScope();
