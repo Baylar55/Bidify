@@ -8,7 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AuctionService.IntegrationTests;
 
-public class AuctionControllerTests : IClassFixture<CustomWebAppFactory>, IAsyncLifetime
+[Collection("SharedFixtures")]
+public class AuctionControllerTests : IAsyncLifetime
 {
     private readonly CustomWebAppFactory _factory;
     private readonly HttpClient _client;
@@ -100,7 +101,50 @@ public class AuctionControllerTests : IClassFixture<CustomWebAppFactory>, IAsync
         Assert.Equal("test-user", createdAuction.Seller);    
     }
 
-    private CreateAuctionDto GetAuctionForCreate(){
+        [Fact]
+    public async Task CreateAuction_WithInvalidCreateAuctionDto_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var newAuction = GetAuctionForCreate();
+        newAuction.Make = null;
+        _client.SetFakeJwtBearerToken(AuthHelper.GetBearerForUser("test-user"));
+
+        // Act
+        var response = await _client.PostAsJsonAsync("api/auctions", newAuction);
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateAuction_WithValidUpdateDtoAndUser_ShouldReturnOk()
+    {
+        // Arrange
+        var updateAuction = new UpdateAuctionDto { Make = "Updated" };
+        _client.SetFakeJwtBearerToken(AuthHelper.GetBearerForUser("test-user"));
+
+        // Act
+        var response = await _client.PutAsJsonAsync($"api/auctions/{FORDGT_ID}", updateAuction);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateAuction_WithValidUpdateDtoAndInvalidUser_ShouldReturnForbidden()
+    {
+        // Arrange 
+        var updateAuction = new UpdateAuctionDto { Make = "Updated" };
+        _client.SetFakeJwtBearerToken(AuthHelper.GetBearerForUser("invalid-user"));
+
+        // Act
+        var response = await _client.PutAsJsonAsync($"api/auctions/{FORDGT_ID}", updateAuction);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    private static CreateAuctionDto GetAuctionForCreate(){
         return new CreateAuctionDto{
             Make = "Test",
             Model = "Test",
